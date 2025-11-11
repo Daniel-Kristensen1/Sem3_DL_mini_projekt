@@ -67,16 +67,15 @@ class SimpleCNN(nn.Module):
         )
         
         # Fully connected:
-        D = config.B * 5 + config.C
         self.fc = nn.Sequential(
             nn.Flatten(),
             nn.Linear(1024 * config.S * config.S, 4096),
             # nn.dropout?
             nn.LeakyReLU(0.1, inplace=True),
-            nn.Linear(4096, config.S * config.S * D)
+            nn.Linear(4096, config.S * config.S * config.D)
         )
         self.S = config.S
-        self.D = D
+        self.D = config.D
 
     def forward(self, x):
         # Aktiverer conv1 laget
