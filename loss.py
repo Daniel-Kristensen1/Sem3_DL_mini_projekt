@@ -51,6 +51,8 @@ class LossFunc(nn.Module):
 
         loss = coord_loss + conf_loss + class_loss # har ikke brugt IOU endnu??
 
+        return loss
+
 
 
 def get_bb_attributes(data):
