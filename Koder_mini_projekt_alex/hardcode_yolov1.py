@@ -21,48 +21,48 @@ class SimpleCNN(nn.Module):
 
         ### Conv3 ###
         self.conv3 = nn.Sequential(
-            nn.Conv2d(192, 128, kernel_size=1, stride=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(256, 256, kernel_size=1, stride=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
+            nn.Conv2d(192, 128, kernel_size=1, stride=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(256, 256, kernel_size=1, stride=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
             nn.MaxPool2d(2, 2)
             #Max pooling på kernel 2x2 og stride = 2
         )
 
         ### Conv4 ###
         self.conv4 = nn.Sequential(
-            nn.Conv2d(512, 256, kernel_size=1, stride=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
+            nn.Conv2d(512, 256, kernel_size=1, stride=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
             #Gentag ovenstående 3 yderligere gange
-            nn.Conv2d(512, 256, kernel_size=1, stride=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(512, 256, kernel_size=1, stride=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(512, 256, kernel_size=1, stride=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
+            nn.Conv2d(512, 256, kernel_size=1, stride=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(512, 256, kernel_size=1, stride=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(512, 256, kernel_size=1, stride=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
 
 
-            nn.Conv2d(512, 512, kernel_size=1, stride=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(512, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
+            nn.Conv2d(512, 512, kernel_size=1, stride=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(512, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
             nn.MaxPool2d(2, 2)
         )
 
         ### Conv5 ###
         self.conv5 = nn.Sequential(
-            nn.Conv2d(1024, 512, kernel_size=1, stride=1),nn.LeakyReLU(0.1),
-            nn.Conv2d(512, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
+            nn.Conv2d(1024, 512, kernel_size=1, stride=1),nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(512, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
             #Gentag ovenstående 1 yderligere gang
-            nn.Conv2d(1024, 512, kernel_size=1, stride=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(512, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
+            nn.Conv2d(1024, 512, kernel_size=1, stride=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(512, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
 
-            nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
+            nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
         )
 
         ### Conv6 ###
         self.conv6 = nn.Sequential(
-            nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
-            nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1),
+            nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
         )
         ########## Vi skal lige kikke på det lag her "Det er vores classifier del #############
         # === classifier (bevar din struktur, men gør den robust) ===
