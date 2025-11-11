@@ -63,6 +63,7 @@ class SimpleCNN(nn.Module):
         self.conv6 = nn.Sequential(
             nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.MaxPool2d(2, 2)
         )
         ########## Vi skal lige kikke på det lag her "Det er vores classifier del #############
         # === classifier (bevar din struktur, men gør den robust) ===

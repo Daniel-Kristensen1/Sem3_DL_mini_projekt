@@ -63,17 +63,20 @@ class SimpleCNN(nn.Module):
         self.conv6 = nn.Sequential(
             nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
             nn.Conv2d(1024, 1024, kernel_size=3, stride=1, padding=1), nn.LeakyReLU(0.1, inplace=True),
+            nn.MaxPool2d(2, 2)
         )
         
         # Fully connected:
-
+        D = config.B * 5 + config.C
         self.fc = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(config.S * config.S * 1024 ,4096),
+            nn.Linear(1024 * config.S * config.S, 4096),
             # nn.dropout?
-            nn.LeakyReLU(0.1),
-            nn.Linear(4096, config.S * config.S * (config.B*5 + config.C))
+            nn.LeakyReLU(0.1, inplace=True),
+            nn.Linear(4096, config.S * config.S * D)
         )
+        self.S = config.S
+        self.D = D
 
     def forward(self, x):
         # Aktiverer conv1 laget
@@ -88,19 +91,18 @@ class SimpleCNN(nn.Module):
         x = self.conv6(x)
 
         # Fully connected 
-
         x = self.fc(x)
+
+        # Reshape til YOLOv1 - format
+        x = x.view(x.shape[0], self.S, self.S, self.D)
         return x
     
 
-model = SimpleCNN(num_classes=13)
-x = torch.randn(1, 3, 448, 448)
-
+""" DETTE ER BARE EN LILLE TEST AF OUTPUT, for at sikre modellen kan køre værdierne"""
+m = SimpleCNN()
+x = torch.randn(1, 3, config.IMAGE_SIZE[0], config.IMAGE_SIZE[1])
 with torch.no_grad():
-    y = model.pool1(model.act1(model.conv1(x)))
-    y = model.pool2(model.act2(model.conv2(y)))
-    y = model.conv3(y)
-    y = model.conv4(y)
-    y = model.conv5(y)  # <- nu uden stride=2
-    y = model.conv6(y)
-    print("Feature map efter conv6:", y.shape)  # forvent: (1, 1024, 14, 14)
+    y = m(x)
+print("Output shape:", y.shape)  # forventer: [1, 7, 7, B*5 + C]
+
+print(sum(p.numel() for p in m.fc.parameters()), "param i FC")
