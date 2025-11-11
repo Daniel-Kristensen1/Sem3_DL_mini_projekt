@@ -6,6 +6,9 @@ This file contains configuration parameters for the Deep learning model.
 BATCH_SIZE = 0
 EPOCHS = 0
 LEARNING_RATE = 0
+
+COORD = 5
+NOOBJ = 0.5
 # ... Andre parametre 
 
 S = 10 # Grid size
