@@ -22,6 +22,7 @@ class LSYoloV1Dataset(Dataset):
         return len(self.items)
     
 
+
     # Funktionen her bliver kaldt hver gang PyTorch skal hente et billede og dens tilhørende data. 
     def __getitem__(self, idx):
         it = self.items[idx]
@@ -44,6 +45,10 @@ class LSYoloV1Dataset(Dataset):
             cy = (ann["y"] + ann["height"] / 2) / 100.0
             w  = ann["width"]  / 100.0
             h  = ann["height"] / 100.0
+
+            cx = min(max(cx, 1e-6), 1.0)
+            cy = min(max(cy, 1e-6), 1.0)
+
             lab = ann.get("rectanglelabels", ["_NA_"])[0]
             if lab not in LABEL2ID:
                 continue
