@@ -21,7 +21,8 @@ class LossFunc(nn.Module):
         # Masks
         obj_ij = gt_c > 0 # 1 if object
         obj_ij=obj_ij.float()
-        obj_i = obj_ij[..., None] # need to rethink???
+        obj_i = (obj_ij.sum(dim=-1) > 0).float()[..., None]
+
 
         noobj_ij = gt_c == 0 # 1 of no object
         noobj_ij = noobj_ij.float() 
