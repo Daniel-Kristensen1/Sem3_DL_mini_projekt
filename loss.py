@@ -52,7 +52,7 @@ class LossFunc(nn.Module):
 
         loss = coord_loss + conf_loss + class_loss # har ikke brugt IOU endnu??
 
-        return loss
+        return loss / config.BATCH_SIZE 
 
 
 
