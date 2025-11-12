@@ -37,6 +37,9 @@ EPSILON        = 1e-6
 WEIGHT_DECAY   = 0.0
 
 
+# Loss function weights
+COORD = 5.0
+NOOBJ = 0.5
 
 # Misc
 SEED = 42
