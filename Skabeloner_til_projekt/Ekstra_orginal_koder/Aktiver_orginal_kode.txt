@@ -1,0 +1,3 @@
+python minimal_train_detector.py \
+  --data-root "C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready" \
+  --output ".\checkpoints" --epochs 5 --batch-size 4
