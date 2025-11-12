@@ -95,13 +95,3 @@ class SimpleCNN(nn.Module):
         # Reshape til YOLOv1 - format
         x = x.view(x.shape[0], self.S, self.S, self.D)
         return x
-    
-
-""" DETTE ER BARE EN LILLE TEST AF OUTPUT, for at sikre modellen kan køre værdierne"""
-m = SimpleCNN()
-x = torch.randn(1, 3, config.IMAGE_SIZE[0], config.IMAGE_SIZE[1])
-with torch.no_grad():
-    y = m(x)
-print("Output shape:", y.shape)  # forventer: [1, 7, 7, B*5 + C]
-
-print(sum(p.numel() for p in m.fc.parameters()), "param i FC")
