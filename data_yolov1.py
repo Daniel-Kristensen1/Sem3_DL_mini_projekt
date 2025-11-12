@@ -28,7 +28,7 @@ class LSYoloV1Dataset(Dataset):
         p = self.images_dir / Path(it["image"]).name
         img = cv2.imread(str(p))
         if img is None:
-            print(f"Image not found {p}")
+            raise FileNotFoundError(p)
         
         # Konvertering til RGB farver og rescaling til config.IMAGE_SIZE
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # PyTorch bruger RGB derfor vi laver BGR til RGB
@@ -45,6 +45,8 @@ class LSYoloV1Dataset(Dataset):
             w  = ann["width"]  / 100.0
             h  = ann["height"] / 100.0
             lab = ann.get("rectanglelabels", ["_NA_"])[0]
+            if lab not in LABEL2ID:
+                continue
             
             c = LABEL2ID[lab]
             i = min(int(cx * self.S), self.S - 1)

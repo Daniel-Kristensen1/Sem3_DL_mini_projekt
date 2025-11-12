@@ -8,13 +8,13 @@ This file contains configuration parameters for the Deep learning model.
 # Paths
 DATA_MAIN_FOLDER = Path("Indsæt lokation til mappe")
 
-TRAIN_JSON = DATA_MAIN_FOLDER / "train_json"
-TEST_JSON = DATA_MAIN_FOLDER / "test_json"
-VAL_JSON = DATA_MAIN_FOLDER / "val_json"
+TRAIN_JSON = DATA_MAIN_FOLDER / "train" / "train.json"
+TEST_JSON = DATA_MAIN_FOLDER / "test" / "test.json"
+VAL_JSON = DATA_MAIN_FOLDER / "val" / "val.json"
 
-TRAIN_IMAGES = DATA_MAIN_FOLDER / "train_images"
-TRAIN_IMAGES = DATA_MAIN_FOLDER / "test_images"
-VAL_IMAGES = DATA_MAIN_FOLDER / "val_images"
+TRAIN_IMAGES = DATA_MAIN_FOLDER / "train" / "images"
+TEST_IMAGES = DATA_MAIN_FOLDER / "test" / "images"
+VAL_IMAGES = DATA_MAIN_FOLDER / "val" / "images"
 
 # CLasses for classification
 CLASSES = ["Adamant", "Clay", "Coal", "Copper", "Gold", "Iron", "Mined", "Mithril", "Motherload_ore", "Removable_ore", "Runeite", "Silver", "Tin"]
