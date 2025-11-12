@@ -6,7 +6,7 @@ This file contains configuration parameters for the Deep learning model.
 """
 
 # Paths
-DATA_MAIN_FOLDER = Path("Indsæt lokation til mappe")
+DATA_MAIN_FOLDER = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt\alpha_dataset\data_splits_ready")
 
 TRAIN_JSON = DATA_MAIN_FOLDER / "train" / "train.json"
 TEST_JSON = DATA_MAIN_FOLDER / "test" / "test.json"
