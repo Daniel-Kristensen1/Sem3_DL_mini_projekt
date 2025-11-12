@@ -1,15 +1,16 @@
-# train.py
-import math, os, time, csv, random
+import argparse
+import json
+import random
 from pathlib import Path
+import time
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
-import torch.optim as optim
-import numpy as np
 
 import config
-from data_yolov1 import LSYoloV1Dataset
 from architecture import SimpleCNN
+from data_yolov1 import LSYoloV1Dataset
 from loss import LossFunc
 
 
@@ -17,156 +18,144 @@ def set_seed(seed: int = 42):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 
-def collate(batch):
-    xs, ys = zip(*batch)
-    return torch.stack(xs, 0), torch.stack(ys, 0)
-
-
-def maybe_unpack_loss(out):
-    """Supports both `loss` and `(loss, parts)` from criterion.forward"""
-    if isinstance(out, tuple) and len(out) == 2 and isinstance(out[1], dict):
-        loss, parts = out
-        parts = {
-            "coord": parts.get("coord", torch.tensor(0.0, device=loss.device)),
-            "conf_obj": parts.get("conf_obj", torch.tensor(0.0, device=loss.device)),
-            "conf_noobj": parts.get("conf_noobj", torch.tensor(0.0, device=loss.device)),
-            "class": parts.get("class", torch.tensor(0.0, device=loss.device)),
-        }
-        return loss, parts
-    else:
-        loss = out
-        zero = torch.tensor(0.0, device=loss.device) if torch.is_tensor(loss) else 0.0
-        return loss, {"coord": zero, "conf_obj": zero, "conf_noobj": zero, "class": zero}
-
-
-def main():
-    set_seed(config.SEED)
-    device = torch.device(config.DEVICE if torch.cuda.is_available() else "cpu")
-
-    # --- Datasets & Loaders ---
+def make_dataloaders(batch_size: int, workers: int):
     train_ds = LSYoloV1Dataset(config.TRAIN_JSON, config.TRAIN_IMAGES, img_size=config.IMAGE_SIZE[0])
-    val_ds   = LSYoloV1Dataset(config.VAL_JSON,   config.VAL_IMAGES,   img_size=config.IMAGE_SIZE[0])
+    val_ds = LSYoloV1Dataset(config.VAL_JSON, config.VAL_IMAGES, img_size=config.IMAGE_SIZE[0])
 
-    train_dl = DataLoader(train_ds, batch_size=config.BATCH_SIZE, shuffle=True,  num_workers=config.WORKERS, collate_fn=collate, pin_memory=True)
-    val_dl   = DataLoader(val_ds,   batch_size=config.BATCH_SIZE, shuffle=False, num_workers=config.WORKERS, collate_fn=collate, pin_memory=True)
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=workers, pin_memory=True)
+    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, num_workers=workers, pin_memory=True)
 
-    # --- Model, Loss, Optimizer ---
-    model = SimpleCNN(num_classes=config.C).to(device)
-    criterion = LossFunc()
-    optimizer = optim.Adam(model.parameters(), lr=config.LEARNING_RATE, weight_decay=config.WEIGHT_DECAY)
-    scaler = torch.cuda.amp.GradScaler(enabled=(device.type == "cuda"))
+    return train_loader, val_loader
 
-    # --- Dirs ---
-    ckpt_dir = Path("checkpoints"); ckpt_dir.mkdir(exist_ok=True)
-    runs_dir = Path("runs_yolov1"); runs_dir.mkdir(exist_ok=True)
-    log_path = runs_dir / "train_log.csv"
 
-    # CSV header
-    if not log_path.exists():
-        with open(log_path, "w", newline="", encoding="utf-8") as f:
-            w = csv.writer(f)
-            w.writerow(["epoch","split","loss","coord","conf_obj","conf_noobj","class","seconds"])
-
-    best_val = math.inf
-
-    # --- Training Loop ---
-    for epoch in range(1, config.EPOCHS + 1):
-        # ---------- TRAIN ----------
-        model.train()
-        t0 = time.time()
-        run_loss = run_coord = run_cobj = run_cnoobj = run_class = 0.0
-
-        for xb, yb in train_dl:
-            xb, yb = xb.to(device, non_blocking=True), yb.to(device, non_blocking=True)
-
-            optimizer.zero_grad(set_to_none=True)
-            with torch.cuda.amp.autocast(enabled=(device.type == "cuda")):
-                pred = model(xb)
-                out = criterion(pred, yb)
-                loss, parts = maybe_unpack_loss(out)
-
-            scaler.scale(loss).backward()
-            scaler.step(optimizer)
-            scaler.update()
-
-            run_loss   += float(loss.item())
-            run_coord  += float(parts["coord"].item())
-            run_cobj   += float(parts["conf_obj"].item())
-            run_cnoobj += float(parts["conf_noobj"].item())
-            run_class  += float(parts["class"].item())
-
-        n_train = max(1, len(train_dl))
-        train_loss  = run_loss   / n_train
-        train_coord = run_coord  / n_train
-        train_cobj  = run_cobj   / n_train
-        train_cno   = run_cnoobj / n_train
-        train_cls   = run_class  / n_train
-
-        # ---------- VALIDATION ----------
-        model.eval()
-        v_loss = v_coord = v_cobj = v_cno = v_cls = 0.0
-        with torch.no_grad():
-            with torch.cuda.amp.autocast(enabled=(device.type == "cuda")):
-                for xb, yb in val_dl:
-                    xb, yb = xb.to(device, non_blocking=True), yb.to(device, non_blocking=True)
-                    pred = model(xb)
-                    out = criterion(pred, yb)
-                    loss, parts = maybe_unpack_loss(out)
-
-                    v_loss += float(loss.item())
-                    v_coord += float(parts["coord"].item())
-                    v_cobj  += float(parts["conf_obj"].item())
-                    v_cno   += float(parts["conf_noobj"].item())
-                    v_cls   += float(parts["class"].item())
-
-        n_val = max(1, len(val_dl))
-        val_loss = v_loss / n_val
-        val_coord = v_coord / n_val
-        val_cobj  = v_cobj  / n_val
-        val_cno   = v_cno   / n_val
-        val_cls   = v_cls   / n_val
-
-        dt = time.time() - t0
-
-        # --- PRINT nice line ---
-        print(
-            f"Epoch {epoch:03d} | "
-            f"train {train_loss:.4f} (xywh {train_coord:.4f} | c_obj {train_cobj:.4f} | c_noobj {train_cno:.4f} | cls {train_cls:.4f}) | "
-            f"val {val_loss:.4f} (xywh {val_coord:.4f} | c_obj {val_cobj:.4f} | c_noobj {val_cno:.4f} | cls {val_cls:.4f}) | "
-            f"{dt:.1f}s"
-        )
-
-        # --- CSV log ---
-        with open(log_path, "a", newline="", encoding="utf-8") as f:
-            w = csv.writer(f)
-            w.writerow([epoch, "train", f"{train_loss:.6f}", f"{train_coord:.6f}", f"{train_cobj:.6f}", f"{train_cno:.6f}", f"{train_cls:.6f}", f"{dt:.2f}"])
-            w.writerow([epoch, "val",   f"{val_loss:.6f}",   f"{val_coord:.6f}",   f"{val_cobj:.6f}",   f"{val_cno:.6f}",   f"{val_cls:.6f}",   f"{dt:.2f}"])
-
-        # --- Save best ---
-        if val_loss < best_val:
-            best_val = val_loss
-            torch.save({
-                "epoch": epoch,
-                "model": model.state_dict(),
-                "opt": optimizer.state_dict(),
-                "best_val": best_val,
-                "config": {k: getattr(config, k) for k in dir(config) if k.isupper()},
-            }, ckpt_dir / "best.pt")
-
-    # --- Final save (last) ---
+def save_checkpoint(path: Path, epoch: int, model: torch.nn.Module, optimizer: torch.optim.Optimizer, val_loss: float):
+    path.parent.mkdir(parents=True, exist_ok=True)
     torch.save({
-        "epoch": config.EPOCHS,
-        "model": model.state_dict(),
-        "opt": optimizer.state_dict(),
-        "best_val": best_val,
-        "config": {k: getattr(config, k) for k in dir(config) if k.isupper()},
-    }, ckpt_dir / "last.pt")
+        "epoch": epoch,
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "val_loss": val_loss,
+        "config": {
+            "S": config.S,
+            "B": config.B,
+            "C": config.C,
+            "IMAGE_SIZE": config.IMAGE_SIZE,
+        }
+    }, path)
+
+
+def train_one_epoch(model, loader, loss_fn, optimizer, device):
+    model.train()
+    total_loss = 0.0
+    total_samples = 0
+    accum_parts = {"coord": 0.0, "conf_obj": 0.0, "conf_noobj": 0.0, "class": 0.0}
+
+    for imgs, targets in loader:
+        bs = imgs.size(0)
+        imgs = imgs.to(device, dtype=torch.float32)
+        targets = targets.to(device, dtype=torch.float32)
+
+        preds = model(imgs)
+        loss, parts = loss_fn(preds, targets)
+
+        optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
+        optimizer.step()
+
+        # Loss and parts are currently sums (per the LossFunc implementation)
+        total_loss += loss.item()
+        total_samples += bs
+
+        for k in accum_parts:
+            accum_parts[k] += parts[k].item()
+
+    avg_loss = total_loss / max(1, total_samples)
+    for k in accum_parts:
+        accum_parts[k] = accum_parts[k] / max(1, total_samples)
+
+    return avg_loss, accum_parts
+
+
+def evaluate(model, loader, loss_fn, device):
+    model.eval()
+    total_loss = 0.0
+    total_samples = 0
+    accum_parts = {"coord": 0.0, "conf_obj": 0.0, "conf_noobj": 0.0, "class": 0.0}
+
+    with torch.no_grad():
+        for imgs, targets in loader:
+            bs = imgs.size(0)
+            imgs = imgs.to(device, dtype=torch.float32)
+            targets = targets.to(device, dtype=torch.float32)
+
+            preds = model(imgs)
+            loss, parts = loss_fn(preds, targets)
+
+            total_loss += loss.item()
+            total_samples += bs
+
+            for k in accum_parts:
+                accum_parts[k] += parts[k].item()
+
+    avg_loss = total_loss / max(1, total_samples)
+    for k in accum_parts:
+        accum_parts[k] = accum_parts[k] / max(1, total_samples)
+
+    return avg_loss, accum_parts
+
+
+def run_training(epochs: int, lr: float, batch_size: int, workers: int, device_str: str, model_dir: str):
+    device = torch.device(device_str if torch.cuda.is_available() and "cuda" in device_str else "cpu")
+    set_seed(config.SEED)
+
+    train_loader, val_loader = make_dataloaders(batch_size, workers)
+
+    model = SimpleCNN(num_classes=config.C, in_channels=3)
+    model = model.to(device)
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=config.WEIGHT_DECAY)
+    loss_fn = LossFunc()
+
+    best_val_loss = float("inf")
+    model_dir = Path(model_dir)
+    start_time = time.time()
+
+    for epoch in range(1, epochs + 1):
+        t0 = time.time()
+        train_loss, train_parts = train_one_epoch(model, train_loader, loss_fn, optimizer, device)
+        val_loss, val_parts = evaluate(model, val_loader, loss_fn, device)
+        epoch_time = time.time() - t0
+
+        print(f"Epoch {epoch:03d}/{epochs} - time: {epoch_time:.1f}s")
+        print(f"  Train loss: {train_loss:.6f} | coord: {train_parts['coord']:.6f} conf_obj: {train_parts['conf_obj']:.6f} conf_noobj: {train_parts['conf_noobj']:.6f} class: {train_parts['class']:.6f}")
+        print(f"  Val   loss: {val_loss:.6f} | coord: {val_parts['coord']:.6f} conf_obj: {val_parts['conf_obj']:.6f} conf_noobj: {val_parts['conf_noobj']:.6f} class: {val_parts['class']:.6f}")
+
+        # Save best
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            save_checkpoint(model_dir / "best_model.pth", epoch, model, optimizer, val_loss)
+            print(f"  Saved new best model (val_loss={val_loss:.6f})")
+
+        # Save last for every epoch (keeps most recent)
+        save_checkpoint(model_dir / "last_model.pth", epoch, model, optimizer, val_loss)
+
+    total_time = time.time() - start_time
+    print(f"Training completed in {total_time/60:.2f} minutes. Best val loss: {best_val_loss:.6f}")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Train YOLOv1-style model")
+    parser.add_argument("--epochs", type=int, default=config.EPOCHS)
+    parser.add_argument("--lr", type=float, default=config.LEARNING_RATE)
+    parser.add_argument("--batch-size", type=int, default=config.BATCH_SIZE)
+    parser.add_argument("--workers", type=int, default=config.WORKERS)
+    parser.add_argument("--device", type=str, default=config.DEVICE)
+    parser.add_argument("--model-dir", type=str, default="./models")
+    args = parser.parse_args()
+
+    run_training(args.epochs, args.lr, args.batch_size, args.workers, args.device, args.model_dir)
