@@ -24,7 +24,7 @@ C = len(CLASSES)
 # Model / Grid
 IMAGE_SIZE = (448, 448) # (H, W)
 S = 7 # Vores 14x14 grid
-B = 2 # Antal bokse per, celle
+B = 1 # Antal bokse per, celle
 D = B * 5 + C # Samlet dimensioner for en celle
 
 # Hyperparametre
