@@ -3,11 +3,12 @@ import json, cv2, numpy as np, torch
 from torch.utils.data import Dataset
 import config
 
+# Laver en dict med klassenavnene og heltals IDerne i forhold til rækkefølgen de står i, i config. (Rækkefølgen i config er den rigtige rækkefølge)
 LABEL2ID = {n: i for i, n in enumerate (config.CLASSES)}
 
 class LSYoloV1Dataset(Dataset):
     """
-    Loader billeder + labels fra Label Studio JSON og laver targets i form [S, S, B*5 + C]
+    Loader billeder + labels fra Label Studio JSON fil og laver targets i form [S, S, B*5 + C]
     """
 
     def __init__ (self, json_path, images_dir, img_size=config.IMAGE_SIZE[0]):
@@ -16,20 +17,24 @@ class LSYoloV1Dataset(Dataset):
         self.S, self.B, self.C = config.S, config.B, config.C
         self.img_size = img_size
 
+
     def __len__(self):
         return len(self.items)
     
+
+    # Funktionen her bliver kaldt hver gang PyTorch skal hente et billede og dens tilhørende data. 
     def __getitem__(self, idx):
         it = self.items[idx]
         p = self.images_dir / Path(it["image"]).name
         img = cv2.imread(str(p))
         if img is None:
-            raise FileNotFoundError(p)
+            print(f"Image not found {p}")
         
         # Konvertering til RGB farver og rescaling til config.IMAGE_SIZE
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = cv2.resize(img, (self.img_size, self.img_size))
-        x = torch.from_numpy(img.astype(np.float32) / 255).permute(2, 0, 1)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # PyTorch bruger RGB derfor vi laver BGR til RGB
+        img = cv2.resize(img, (self.img_size, self.img_size)) # Billedet får den størrelse vi har sat i config filen (448x448) 
+        x = torch.from_numpy(img.astype(np.float32) / 255).permute(2, 0, 1) # Normalisering til [0,1] og permuterer dimensionerne til [C,H,W] som PyTorch forventer
+        
 
         # YOLOv1-target [S,S,B*5+C]
         target = torch.zeros(self.S, self.S, self.B * 5 + self.C, dtype=torch.float32)
@@ -40,8 +45,7 @@ class LSYoloV1Dataset(Dataset):
             w  = ann["width"]  / 100.0
             h  = ann["height"] / 100.0
             lab = ann.get("rectanglelabels", ["_NA_"])[0]
-            if lab not in LABEL2ID:
-                continue
+            
             c = LABEL2ID[lab]
             i = min(int(cx * self.S), self.S - 1)
             j = min(int(cy * self.S), self.S - 1)
