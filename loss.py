@@ -52,7 +52,16 @@ class LossFunc(nn.Module):
 
         loss = coord_loss + conf_loss + class_loss # har ikke brugt IOU endnu??
 
-        return loss# / config.BATCH_SIZE 
+
+        #### NYT ####
+        parts = {
+            "coord": coord_loss.detach(),
+            "conf_obj": conf_obj.detach(),
+            "conf_noobj": conf_noobj.detach(),
+            "class": class_loss.detach(),
+        }
+
+        return loss, parts# / config.BATCH_SIZE 
 
 
 
