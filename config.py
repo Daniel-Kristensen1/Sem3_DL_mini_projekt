@@ -44,3 +44,4 @@ NOOBJ = 0.5
 # Misc
 SEED = 42
 DEVICE = "cuda"
+WORKERS = 8
