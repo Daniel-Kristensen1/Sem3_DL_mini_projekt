@@ -19,6 +19,8 @@ print(f"- CUDA available: {torch.cuda.is_available()}")
 print("✓ Libraries imported and verified!")
 
 print("\nSTEP 2: Defining model architecture...")
-model.defineBackbone()
+model = model.CustomResModel()
+
+print(model)
 
 
