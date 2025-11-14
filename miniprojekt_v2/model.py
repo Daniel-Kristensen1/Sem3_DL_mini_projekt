@@ -85,7 +85,7 @@ dummy_input = torch.randn(2, 3, 224, 224)
 
 model = CustomModel()
 # Forward pass
-bbox_predictions, class_logits = model(dummy_input)
+class_logits, bbox_predictions = model(dummy_input)
 
 # Output sizes
 print("Bounding Box Predictions:", bbox_predictions.size())  # Should be [batch_size, 4]
