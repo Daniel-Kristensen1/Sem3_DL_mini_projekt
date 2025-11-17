@@ -70,38 +70,60 @@ def train_loop():
 
 
     # Modellen - Vi bygger Faster R-CNN modellen, inklusiv backbone, RPN, ROI-heads og klassification - regression lag
+    # Fase 1: Anchor generator bliver lavet
+    # Fase 2: Backbone bliver lavet
+    # Fase 3: Faster R-CNN bliver lavet
     model = create_object_detector(num_classes=config.NUM_CLASSES)
     model.to(device) # Vi flytter bare her opgaven fra CPU til GPU
 
 
 
     # Optimizer HUSK AT SE PÅ optimizere muligheder
-    optimizer = optim.SGD(
+    # Vi optimer alle parametre (vægte)
+    # Inkluderer: ResNet50 backbone, RPN (Region Proposal Netword), ROI heads (klassifikation + box regression), Anchor regression head
+    optimizer = optim.SGD(# Vi anvender her Stochastic gradient descent.
+        #Vi tager gradienterne fra loss.backward(), opdater vægtene i modellen i modsat retning af loss. Gør det igen og igen for hver batch
         model.parameters(),
         lr=config.LEARNING_RATE,
-        momentum=0.9,
-        weight_decay=1e-4
+        momentum=0.9,# 0.9 betyder: Optimizer husk tidligere retninger, gradientstøj bliver udjævnet, træningen bliver hurtigere, modellen zigzagger mindre, den glider gennem loss-landskabet
+        # weight_decay standardværdi for R-CNN = 1e-4
+        weight_decay=1e-4 # Anti overfitting: Forhindrer vægtene i at blive alt for store, gør modellen generaliserer bedre, Gør RPN+ROI heads mere stabile, reducerer risikoen for "blowing up gradients"
+    # Alternativer til optimizer: Adam, AdamW, RMSprop (Dog bruges denne mere i RNNs)
+    # R-CNN blev designet med SGD, derfor er det den anvende optimizer her
     )
 
     num_epochs = config.NUM_EPOCHS
-
+    # Træn igennem antallet af epochs. Altså kom igennem træningsdataen x antal gange
     for epoch in range(num_epochs):
         model.train()
-        epoch_loss = 0.0
+        epoch_loss = 0.0 # Skal ses som en accumulator, hvor vi samler loss for hele epoch for at kunne udregne gennemsnittet til sidst.
 
+
+        #DataLoader vælger fx 2 samples fra datasættet, kalder DataHandler.__getitem__ for hver sample.
+        #Den samler dem til en batch med collate_fn funktionen
+        #Giver os images og targets for den batch
         for batch_idx, (images, targets) in enumerate(train_loader):
             # Flyt data til device (GPU/CPU)
-            images = [img.to(device) for img in images]
-            targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+            images = [img.to(device) for img in images] #Flytter billede til GPU fra CPU
+            targets = [{k: v.to(device) for k, v in t.items()} for t in targets] #Flytter alle tensors i dict'en til device(GPUen)
 
-            # Modellen kaldes, for en dict med losses
+
+            # model(images, targets og sum(loss for loss in loss_dict.values())
+            # Sender images gennem backbone, (backbone.forward) -> feature maps
+            # RPN laver forslag til regioner (anchors -> proposals)
+            # RPO-heads klassificerer og finjusterer bokse
+            # Sammenligner output med targets (ground truth)
+            # Regner 4 losses
+            # De 4 losses: loss_classifier, loss_box_reg, loss_objectness, loss_rpn_box_reg. Returneres som en dictionary
             loss_dict = model(images, targets)
-            loss = sum(loss for loss in loss_dict.values())
+            loss = sum(loss for loss in loss_dict.values()) # Laver samlet loss, til backprop
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            optimizer.zero_grad() # Nulstiller gamle gradients, så vi ikke akkumulerer fra tidligere batches
+            loss.backward() # PyTorch går baglæns igennem hele modellen: Beregner gradienter for backbone, RPN, heads
+            optimizer.step() # Tager alle gradients, opdaterer vægtene en lille smule ud fra "learning rate" og "momentum" og "weight decay" 
 
+
+            # Lægger loss for dette batch oveni totalen for hele epoch
             epoch_loss += loss.item()
 
             if (batch_idx +1) % 10 == 0:
