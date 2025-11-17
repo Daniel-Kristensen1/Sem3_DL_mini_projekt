@@ -21,7 +21,7 @@ class Backbone(nn.Module):
         print("- Defining out_channels for fasterRCNN...")
         self.out_channels = 2048
     def forward(self, x):
-        print(f"- Initiating backbone forward function...")
+        #(Kun brugt til eventuel debug) -> print(f"- Initiating backbone forward function...")
         return {"0": self.backbone(x)} # Lavet til en tensor for at det passer med torch vision. Det fungere også uden, men der kan vist opstå problemer med edge cases.
 
 
