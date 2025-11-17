@@ -3,11 +3,27 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 from pathlib import Path
 import json
+import random
+import numpy as np
 
 
 import config
 from data_handler import DataHandler
 from modelV2 import create_object_detector
+
+def set_seed(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
+
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)  # hvis du bruger flere GPU'er
+
+    # Gør cuDNN så deterministisk som muligt
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
 
 # Sortering funktion
 # collate_fn er en funktion, som bestemmer, hvordan DataLoader skal samle individuelle samples fra vores dataset til en samlet batch. 
@@ -219,4 +235,5 @@ def train_loop():
 
 
 if __name__ == "__main__":
+    set_seed(42)
     train_loop()
