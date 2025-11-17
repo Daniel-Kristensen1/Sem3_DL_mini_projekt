@@ -32,11 +32,9 @@ def create_object_detector(num_classes=config.NUM_CLASSES):
         sizes=((32, 64, 128, 256, 512),),
         aspect_ratios=((0.5, 1.0, 2.0),)
         )
-      print(f"- Initiating Backbone...")
-      backbone = Backbone()
       print(f"- Building model based on FasterRCNN...")
       model = FasterRCNN(
-           backbone,
+           backbone=Backbone(),
            num_classes=num_classes+1, # +1 because the background also needs a class.
            rpn_anchor_generator=anchor_gen
       )
