@@ -13,7 +13,7 @@ from torchvision.models.detection.anchor_utils import AnchorGenerator
 class Backbone(nn.Module):
     def __init__(self): 
         super().__init__()
-
+        print("- Initiating Backbone...")
         print("- Loading resnet50 with pretrained weights...")
         self.backbone = resnet50(weights=ResNet50_Weights.IMAGENET1K_V2)
         print("- Removing final layers of resnet50...")
