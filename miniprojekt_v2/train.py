@@ -2,13 +2,14 @@ import torch
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from pathlib import Path
+import json
 
 
 import config
 from data_handler import DataHandler
 from modelV2 import create_object_detector
 
-# Sorterings funktion
+# Sortering funktion
 # collate_fn er en funktion, som bestemmer, hvordan DataLoader skal samle individuelle samples fra vores dataset til en samlet batch. 
 # Normalt i PyTorch til fx klassifikations opgaver så laver DataLoader automatisk batches således her:
 # images:  tensor of shape [batch_size, C, H, W]
@@ -48,6 +49,14 @@ def collate_fn(batch):
 
 
 def train_loop():
+    # Tomme lister til at lave nogle loss function plots
+    epoch_total_losses = []
+    epoch_classification_losses = []
+    epoch_box_losses = []
+    epoch_object_losses = []
+    epoch_rpn_box_losses = []
+
+
     device = config.DEVICE # Vi henter vores cuda/cpu device fra config filen
     print(f"Device used for training: {device}") # Vi printer for at se hvad device der er i brug
 
@@ -107,6 +116,10 @@ def train_loop():
     for epoch in range(num_epochs):
         model.train()
         epoch_loss = 0.0 # Skal ses som en accumulator, hvor vi samler loss for hele epoch for at kunne udregne gennemsnittet til sidst.
+        epoch_cls = 0.0
+        epoch_box = 0.0
+        epoch_obj = 0.0
+        epoch_rpn_box = 0.0
 
 
         #DataLoader vælger fx 2 samples fra datasættet, kalder DataHandler.__getitem__ for hver sample.
@@ -125,21 +138,54 @@ def train_loop():
             # Sammenligner output med targets (ground truth)
             # Regner 4 losses
             # De 4 losses: loss_classifier, loss_box_reg, loss_objectness, loss_rpn_box_reg. Returneres som en dictionary
-            loss_dict = model(images, targets)
-            loss = sum(loss for loss in loss_dict.values()) # Laver samlet loss, til backprop
+            loss_dict = model(images, targets) # <- vigtigste
+
+            # Resten under bruges kun til at lave plots
+            loss_classifer = loss_dict.get("loss_classifier", 0.0)
+            loss_box_reg = loss_dict.get("loss_box_reg", 0.0)
+            loss_objectness = loss_dict.get("loss_objectness", 0.0)
+            loss_rpn_box_reg = loss_dict.get("loss_rpn_box_reg", 0.0)
+
+
+            loss = loss_classifer + loss_box_reg + loss_objectness + loss_rpn_box_reg # Laver samlet loss, til backprop
 
             optimizer.zero_grad() # Nulstiller gamle gradients, så vi ikke akkumulerer fra tidligere batches
             loss.backward() # PyTorch går baglæns igennem hele modellen: Beregner gradienter for backbone, RPN, heads
             optimizer.step() # Tager alle gradients, opdaterer vægtene en lille smule ud fra "learning rate" og "momentum" og "weight decay" 
 
 
-            # Lægger loss for dette batch oveni totalen for hele epoch
+            # akkumuler batch losses .item funktion er så vi får tal og ikke tensor.
             epoch_loss += loss.item()
+            epoch_cls += loss_classifer.item()
+            epoch_box += loss_box_reg.item()
+            epoch_obj += loss_objectness.item()
+            epoch_rpn_box += loss_rpn_box_reg.item()
+
+        # Vi udregner gennemsnit pr epoch
+        num_batches = len(train_loader)
+        avg_epoch_loss = epoch_loss / num_batches
+        avg_cls = epoch_cls / num_batches
+        avg_box = epoch_box / num_batches
+        avg_obj = epoch_obj / num_batches
+        avg_rpn_box = epoch_rpn_box / num_batches
+
+        # Print i terminalen for at få en status
+        print(
+            f"==> Epoch [{epoch+1}/{num_epochs}] "
+            f"Total: {avg_epoch_loss:.4f} | "
+            f"cls: {avg_cls:.4f} | box: {avg_box:.4f} | "
+            f"obj: {avg_obj:.4f} | rpn_box: {avg_rpn_box:.4f}"
+        )
+
+        # Gem losses i liste
+        epoch_total_losses.append(avg_epoch_loss)
+        epoch_classification_losses.append(avg_cls)
+        epoch_box_losses.append(avg_box)
+        epoch_object_losses.append(avg_obj)
+        epoch_rpn_box_losses.append(avg_rpn_box)
 
         
-        avg_epoch_loss = epoch_loss / len(train_loader)
-        print(f"==> Epoch [{epoch+1}/{num_epochs}] "
-              f"Average loss: {avg_epoch_loss:.4f}")
+
         
         # Kontrollere om nuværende epoch er bedre end sidste
         if avg_epoch_loss < best_loss:
@@ -156,6 +202,17 @@ def train_loop():
                 
             else:
                 print(f"Model saved at epoch {best_epoch} with loss {best_loss:.4f}")
+
+
+    loss_log = {"total": epoch_total_losses, 
+                "loss_classifier": epoch_classification_losses,
+                "loss_box_reg": epoch_box_losses,
+                "loss_objectness": epoch_object_losses,
+                "loss_rpn_box_reg": epoch_rpn_box_losses,
+                }
+    
+    with open(checkpoint_dir / "loss_log.json", "w") as f:
+        json.dump(loss_log, f, indent=2)
 
     print(f"Best epoch for this training {best_epoch} with loss: {best_loss:.4f}")
 
