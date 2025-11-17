@@ -57,7 +57,7 @@ def train_loop():
         train=True
     )
 
-    # DataLoader får her adgang til datasettet
+    # DataLoader får her adgang til datasættet
     train_loader = DataLoader(
         train_dataset, # Indeholder JSON, Stier, resize, bounding box processing, getitem (hent 1 sample), len (Hvor mange samples findes der)
         batch_size=config.BATCH_SIZE, # Hvor mange samples per batch. R-CNN er tung, og kræver meget, så 1-2 er ofte passende større batches kan gøre træning langsom eller umulig
@@ -75,7 +75,7 @@ def train_loop():
 
 
 
-    # Optimizer
+    # Optimizer HUSK AT SE PÅ optimizere muligheder
     optimizer = optim.SGD(
         model.parameters(),
         lr=config.LEARNING_RATE,
