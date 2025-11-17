@@ -18,7 +18,6 @@ def set_seed(seed=42):
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)  # hvis du bruger flere GPU'er
 
     # Gør cuDNN så deterministisk som muligt
     torch.backends.cudnn.deterministic = True
