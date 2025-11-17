@@ -27,6 +27,7 @@ class Backbone(nn.Module):
 
 
 def create_object_detector(num_classes=config.NUM_CLASSES):
+      print(f"- Creating Object Detector...")
       print(f"- Creating Anchor generator...")
       anchor_gen = AnchorGenerator(
         sizes=((32, 64, 128, 256, 512),),
