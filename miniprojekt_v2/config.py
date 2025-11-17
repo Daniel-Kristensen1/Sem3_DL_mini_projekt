@@ -30,7 +30,7 @@ CLASSES_WITH_ID = {name: i + 1 for i, name in enumerate(CLASSES)}  # 0 reservere
 
 NUM_CLASSES = len(CLASSES)
 
-BATCH_SIZE = 32
+BATCH_SIZE = 2
 
 NUM_EPOCHS = 10
 
@@ -39,3 +39,5 @@ LEARNING_RATE = 0.001
 LOSS_FN = []
 
 IMAGE_SIZE = (640, 640)
+
+NUM_WORKERS = 0
