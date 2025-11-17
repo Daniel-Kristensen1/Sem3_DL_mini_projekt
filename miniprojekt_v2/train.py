@@ -1,6 +1,8 @@
 import torch
 from torch.utils.data import DataLoader
 import torch.optim as optim
+from pathlib import Path
+
 
 import config
 from data_handler import DataHandler
@@ -14,9 +16,10 @@ from modelV2 import create_object_detector
 
 # Men da vi bruger Faster R-CNN, så skal vi have output:
 # {
-#    "images": tensor of shape [batch_size, C, H, W],
-#    "boxes": Tensor of shape [N, 4], 
-#    "labels": Tensor of shape [N]
+#    "images": [img1, img2, ...],
+# targets = [
+#    {"boxes": ..., "labels": ...},
+#    {"boxes": ..., "labels": ...},]
 #}   N kan være forskelligt for hver batch altså antallet af boxes og labels
 
 
@@ -42,7 +45,6 @@ def collate_fn(batch):
     # images = [image1, image2]
     # targets = [target1, target2]
     # Det er denne format R-CNN forventer at få data i
-
 
 
 def train_loop():
@@ -93,6 +95,14 @@ def train_loop():
     )
 
     num_epochs = config.NUM_EPOCHS
+
+    # Mappe til at lave heckponts + tracking af bedste loss
+    checkpoint_dir = Path("checkpoints")
+    checkpoint_dir.mkdir(exist_ok=True)
+    best_loss = float("inf")
+    best_epoch = -1
+
+
     # Træn igennem antallet af epochs. Altså kom igennem træningsdataen x antal gange
     for epoch in range(num_epochs):
         model.train()
@@ -126,13 +136,29 @@ def train_loop():
             # Lægger loss for dette batch oveni totalen for hele epoch
             epoch_loss += loss.item()
 
-            if (batch_idx +1) % 10 == 0:
-                print(f"Epoch [{epoch+1}/{num_epochs}], Batch [{batch_idx+1}/{len(train_loader)}], Loss: {loss.item():.4f}")
-
         
         avg_epoch_loss = epoch_loss / len(train_loader)
         print(f"==> Epoch [{epoch+1}/{num_epochs}] "
               f"Average loss: {avg_epoch_loss:.4f}")
+        
+        # Kontrollere om nuværende epoch er bedre end sidste
+        if avg_epoch_loss < best_loss:
+            old_best = best_loss
+            best_loss = avg_epoch_loss
+            best_epoch = epoch + 1
+
+            # Gemme model + optimizer + data
+            checkpoint_path = checkpoint_dir / "best_model.pth"
+            torch.save({"epoch": best_epoch, "model_state_dict": model.state_dict(), "optimizer_state_dict": optimizer.state_dict(), "loss": best_loss,}, checkpoint_path)
+
+            if old_best < float("inf"):
+                print(f"Best model at epoch {best_epoch} with loss {best_loss:.4f} (last best was {old_best:.4f})")
+                
+            else:
+                print(f"Model saved at epoch {best_epoch} with loss {best_loss:.4f}")
+
+    print(f"Best epoch for this training {best_epoch} with loss: {best_loss:.4f}")
+
 
 
 if __name__ == "__main__":
