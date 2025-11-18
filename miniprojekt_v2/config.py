@@ -22,6 +22,7 @@ if user == "Daniel K":
     TEST_IMAGES = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\test\images")    
     VAL_IMAGES = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\val\images")    
     
+    WEIGHTS = Path(r"C:\Users\Daniel K\Desktop\best_model.pth")
 
 else: 
     TRAIN_JSON = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\train\train.json")
@@ -33,8 +34,10 @@ else:
     TEST_IMAGES = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\test\images")
     VAL_IMAGES = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\val\images")
 
+    WEIGHTS = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt\Daniel_github\checkpoints\best_model.pth")
+
 # Sti til trænede vægte:
-WEIGHTS_DANIEL_PC = Path(r"C:\Users\Daniel K\Desktop\best_model.pth")
+
 
 # Klasserne vi har i datasættet i rigtig rækkefølge
 CLASSES = [
