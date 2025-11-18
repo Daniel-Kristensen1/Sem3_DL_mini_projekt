@@ -18,21 +18,6 @@ import json
 image_dir_path = config.TEST_IMAGES
 image_data = config.TEST_JSON
 
-CLASS_COLORS = { 
-        "Adamant":        (80, 120, 70),    # dull green
-        "Clay":           (200, 170, 120),  # pale brown/beige
-        "Coal":           (30, 30, 30),     # black
-        "Copper":         (170,100,50),     # orange/brown 
-        "Gold":           (212,175,55),     # gold
-        "Iron":           (130,120,110),    # gray with tint of brown
-        "Mined":          (120,120,120),    # dark grey
-        "Mithril":        (110,150,200),    # pale blue
-        "Motherload_ore": (150,120,60),     # golden brown
-        "Removable_ore":  (140,140,140),    # light grey
-        "Runeite":        (45, 75, 160),    # deep blue
-        "Silver":         (200,200,210),    # light silver
-        "Tin":            (170,170,150),    # grey with yellow tint
-    }
 
 def get_image_path(image_dir_path, image_index):
     """
@@ -113,7 +98,21 @@ def get_image_data(image_dir_path, image_index, data):
         if file_name(image_dir_path, image_index) in i["image"]:
             return i
     print("Error: couldnt find image data")
-            
+
+def get_class_info(id):
+    """
+    Henter information om klassens navn og bounding boks farve. 
+
+    Parametre:
+    id (int): klassen id / index i variablen config.CLASSES
+
+    Returnerer:
+    str: navnet på klassen
+    tuple: RGB farver 
+    """ 
+    class_name = config.CLASSES[id]
+    class_color = config.CLASS_COLORS[class_name]
+    return class_name, class_color      
 
 def draw(image, x1, y1, bb_top_right, bb_lower_left, class_name, conf=1):
     """
@@ -136,7 +135,7 @@ def draw(image, x1, y1, bb_top_right, bb_lower_left, class_name, conf=1):
         image, 
         bb_top_right, 
         bb_lower_left, 
-        CLASS_COLORS[class_name],
+        config.CLASS_COLORS[class_name],
         rect_thickness
                     )
     cv2.putText(
@@ -145,7 +144,7 @@ def draw(image, x1, y1, bb_top_right, bb_lower_left, class_name, conf=1):
         (x1, y1 - 5),             # Text location 
         cv2.FONT_HERSHEY_SIMPLEX,           # Font
         1,                                  # Font scale
-        CLASS_COLORS[class_name], # Color
+        config.CLASS_COLORS[class_name], # Color
         rect_thickness                      # thickness
     )
 

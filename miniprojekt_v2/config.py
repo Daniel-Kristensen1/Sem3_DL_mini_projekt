@@ -45,6 +45,25 @@ CLASSES = [
     "Mined", "Mithril", "Motherload_ore", "Removable_ore",
     "Runeite", "Silver", "Tin",
 ]
+
+
+CLASS_COLORS = { 
+        "Adamant":        (80, 120, 70),    # dull green
+        "Clay":           (200, 170, 120),  # pale brown/beige
+        "Coal":           (30, 30, 30),     # black
+        "Copper":         (170,100,50),     # orange/brown 
+        "Gold":           (212,175,55),     # gold
+        "Iron":           (130,120,110),    # gray with tint of brown
+        "Mined":          (120,120,120),    # dark grey
+        "Mithril":        (110,150,200),    # pale blue
+        "Motherload_ore": (150,120,60),     # golden brown
+        "Removable_ore":  (140,140,140),    # light grey
+        "Runeite":        (45, 75, 160),    # deep blue
+        "Silver":         (200,200,210),    # light silver
+        "Tin":            (170,170,150),    # grey with yellow tint
+    }
+
+
 # Dictionary med klasserne og deres ID'er
 CLASSES_WITH_ID = {name: i + 1 for i, name in enumerate(CLASSES)}  # 0 reserveret til background
 
