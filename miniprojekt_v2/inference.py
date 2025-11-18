@@ -39,7 +39,7 @@ def preprocess_image(path):
 
 image_path = utils.get_image_path(0,image_dir_path)
 image = preprocess_image(image_path)
-
+image = image.to(config.DEVICE)  
 with torch.no_grad():
     outputs = model(image)
 
