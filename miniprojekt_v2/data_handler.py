@@ -79,7 +79,7 @@ class DataHandler(Dataset):
         new_width, new_height = self.resize
         image_resized = F.resize(image, [new_height, new_width])
 
-        # Der burde ikke være billeder uden bounding boxes, men bare for at være sikker
+        # Der burde ikke være billeder uden bounding boxes Længere, men bare for at være sikker
         if len(boundingboxes) == 0:
             return image_resized, []
         
