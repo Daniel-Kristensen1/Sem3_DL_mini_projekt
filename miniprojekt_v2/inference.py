@@ -9,10 +9,10 @@ from pathlib import Path
 import torchvision.transforms as T
 from PIL import Image
 import utils
-weight_path = config.WEIGHTS_DANIEL_PC
+weight_path = config.WEIGHTS
 
-image_dir_path = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\test\images")
-image_data = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\test\test.json")
+image_dir_path = config.TEST_IMAGES
+image_data = config.TEST_JSON
 
 # -------------------------------
 # Load weights
