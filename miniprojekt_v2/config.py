@@ -6,18 +6,35 @@ from torchvision import datasets, models, transforms
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from pathlib import Path
-
+import getpass
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+user = getpass.getuser()
 # Datalokation
-TRAIN_JSON = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\train\train.json")
-TEST_JSON = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\test\test.json")
-VAL_JSON = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\val\val.json")
 
-TRAIN_IMAGES = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\train\images")
-TEST_IMAGES = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\test\images")
-VAL_IMAGES = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\val\images")
+if user == "Daniel K":
+    print("User is Daniel")
+    TRAIN_JSON = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\train\train.json")
+    TEST_JSON = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\test\test.json")
+    VAL_JSON = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\val\val.json")
 
+    TRAIN_IMAGES = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\train\images")
+    TEST_IMAGES = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\test\images")    
+    VAL_IMAGES = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\val\images")    
+    
+
+else: 
+    TRAIN_JSON = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\train\train.json")
+    TEST_JSON = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\test\test.json")
+    VAL_JSON = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\val\val.json")
+
+
+    TRAIN_IMAGES = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\train\images")
+    TEST_IMAGES = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\test\images")
+    VAL_IMAGES = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\val\images")
+
+# Sti til trænede vægte:
+WEIGHTS_DANIEL_PC = Path(r"C:\Users\Daniel K\Desktop\best_model.pth")
 
 # Klasserne vi har i datasættet i rigtig rækkefølge
 CLASSES = [
