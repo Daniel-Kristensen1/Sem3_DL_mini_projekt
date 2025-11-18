@@ -140,17 +140,3 @@ class DataHandler(Dataset):
 
         # Returner billedet og target dict
         return image_tensor, target
-    
-
-dataset = DataHandler(
-    json_path=config.TRAIN_JSON,
-    images_dir=config.TRAIN_IMAGES,
-    resize=config.IMAGE_SIZE,
-    train=True,
-)
-
-img, target = dataset[0]
-print(img.shape)                # forventer: torch.Size([3, H, W])
-print(target["boxes"].shape)    # forventer: torch.Size([N, 4])
-print(target["labels"].shape)   # forventer: torch.Size([N])
-print(target["labels"].unique())
