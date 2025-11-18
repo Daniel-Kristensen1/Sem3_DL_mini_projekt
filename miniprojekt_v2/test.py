@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 from data_handler import DataHandler
 import train
 
-weight_path = config.WEIGHTS_DANIEL_PC
+weight_path = config.WEIGHTS
 
 # -------------------------------
 # Load weights
@@ -87,35 +87,35 @@ for batch_idx, (images, targets) in enumerate(test_loader):
 result = metric.compute()
 print("\n🎯 Final evaluation metrics:")
 lines = "---------------------------------------"
-print(f"\nmap:                {result["map"].item()}")
+print(f"\nmap:                {result['map'].item()}")
 print(lines)
-print(f"map_50:             {result["map_50"].item()}")
+print(f"map_50:             {result['map_50'].item()}")
 print(lines)
-print(f"map_75:             {result["map_75"].item()}")
+print(f"map_75:             {result['map_75'].item()}")
 print(lines)
-print(f"map_small:          {result["map_small"].item()}")
+print(f"map_small:          {result['map_small'].item()}")
 print(lines)
-print(f"map_medium:         {result["map_medium"].item()}")
+print(f"map_medium:         {result['map_medium'].item()}")
 print(lines)
-print(f"map_large:          {result["map_large"].item()}")
+print(f"map_large:          {result['map_large'].item()}")
 print(lines)
-print(f"mar_1:              {result["mar_1"].item()}")
+print(f"mar_1:              {result['mar_1'].item()}")
 print(lines)
-print(f"mar_10:             {result["mar_10"].item()}")
+print(f"mar_10:             {result['mar_10'].item()}")
 print(lines)
-print(f"mar_100:            {result["mar_100"].item()}")
+print(f"mar_100:            {result['mar_100'].item()}")
 print(lines)
-print(f"mar_small:          {result["mar_small"].item()}")
+print(f"mar_small:          {result['mar_small'].item()}")
 print(lines)
-print(f"mar_medium:         {result["mar_medium"].item()}")
+print(f"mar_medium:         {result['mar_medium'].item()}")
 print(lines)
-print(f"mar_large:          {result["mar_large"].item()}")
+print(f"mar_large:          {result['mar_large'].item()}")
 print(lines)
-print(f"map_per_class:      {result["map_per_class"].item()}")
+print(f"map_per_class:      {result['map_per_class'].item()}")
 print(lines)
-print(f"mar_100_per_class:  {result["mar_100_per_class"].item()}")
+print(f"mar_100_per_class:  {result['mar_100_per_class'].item()}")
 print(lines)
-print(f"classes:            {result["classes"]}")
+print(f"classes:            {result['classes']}")
 print(lines*2)
 
 print(result)

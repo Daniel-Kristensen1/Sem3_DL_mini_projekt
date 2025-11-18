@@ -1,7 +1,7 @@
 
 import torch
 import numpy as np
-
+import config
 
 
 def generate_anchors(base_size=16, scales=[0.5, 1.0, 2.0], aspect_ratios=[0.5, 1.0, 2.0]):
@@ -145,8 +145,8 @@ import json
 #image_dir_path = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\val\images")
 #image_data = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\val\val.json")
 
-image_dir_path = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\test\images")
-image_data = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\test\test.json")
+image_dir_path = config.TEST_IMAGES
+image_data = config.TEST_JSON
 
 CLASS_COLORS = { 
         "Adamant":        (80, 120, 70),    # dull green
