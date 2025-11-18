@@ -142,8 +142,11 @@ import cv2
 from pathlib import Path
 import json
 
-image_dir_path = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\val\images")
-image_data = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\val\val.json")
+#image_dir_path = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\val\images")
+#image_data = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\val\val.json")
+
+image_dir_path = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\test\images")
+image_data = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\test\test.json")
 
 CLASS_COLORS = { 
         "Adamant":        (80, 120, 70),    # dull green
@@ -273,8 +276,27 @@ def show_all_bb(image_index):
     cv2.destroyAllWindows()
 
 
+def show_all_bb_inf(image_boxes, image_path, image_labels=None, image_scores=None):
+    h, w = get_image_w_h(image_path)
+    img = cv2.imread(image_path)
 
-show_all_bb(0)
+    for bb in image_boxes: # bb = Bounding Box
+        x1, y1, x2, y2 = bb.int().tolist()
+        
+        x1 = int(x1 / 640*w)
+        y1 = int(y1 / 640*h)
+        x2 = int(x2 /  640*w)
+        y2 = int(y2 / 640*h)
+
+    
+        draw(img, x1, y1, (x1,y1), (x2, y2), "Adamant")
+    
+    cv2.imshow(f"Runescape image - Inference", img)
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+#show_all_bb(0)
 
 
 #print(get_image_data(0))
