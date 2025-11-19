@@ -8,10 +8,6 @@ import cv2
 from pathlib import Path
 import json
 
-image_dir_path = config.TEST_IMAGES
-image_data = config.TEST_JSON
-
-
 #####################################
 ########## Path Handeling ###########
 #####################################
@@ -172,32 +168,17 @@ def draw(image, x1, y1, bb_top_right, bb_lower_left, class_name, conf=1):
     )
 
 
-def show_all_bb(image_index):
-    image_path=get_image_path(image_index)
-    h, w = get_image_w_h(image_path)
-    image_data = get_image_data(image_index)
-    img = cv2.imread(image_path)
-
-    for bb in image_data["label"]: # bb = Bounding Box
-        bw = int(bb["width"] / 100*w)
-        bh = int(bb["height"] / 100*h)
-    
-    
-        x1 = int(bb["x"] / 100*w)
-        y1 = int(bb["y"] / 100*h)
-        x2 = x1 + bw
-        y2 = y1 + bh
-
-    
-        draw(img, x1, y1, (x1,y1), (x2, y2), bb["rectanglelabels"][0])
-    
-    cv2.imshow(f"Runescape image {image_index}", img)
-
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-
 def show_all_bb_inf(image_path, image_pred_boxes, image_pred_labels, image_scores):
+    """
+    Tegner bounding bokse indputbillede og viser det på skærmen.
+
+    Parametre:
+    image_path (path): sti til billedefilen
+    image_pred_boxes (tensor): tensor med alle bounding bokse på billedet
+    image_pred_labels (tensor): tensor med labels tilhørende respektive bounding bokse
+    image_scores (tensor): tensor med confidence scores tilhørende respektive bounding bokse
+
+    """ 
     h, w = get_image_w_h(image_path)
     img = cv2.imread(image_path)
 
@@ -218,23 +199,3 @@ def show_all_bb_inf(image_path, image_pred_boxes, image_pred_labels, image_score
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     print(" Window closed.")
-
-#show_all_bb(0)
-
-
-#print(get_image_data(0))
-
-
-
-
-
-
-
-#file_name()
-#print(data[0]["image"])
-#print(data[0]["id"])
-#print(data[0]["label"][0])
-
-
-#show_first_image()
-
