@@ -197,11 +197,11 @@ def show_all_bb(image_index):
     cv2.destroyAllWindows()
 
 
-def show_all_bb_inf(image_boxes, image_path, image_labels=None, image_scores=None):
+def show_all_bb_inf(image_path, image_pred_boxes, image_pred_labels, image_scores):
     h, w = get_image_w_h(image_path)
     img = cv2.imread(image_path)
 
-    for bb in image_boxes: # bb = Bounding Box
+    for index, bb in enumerate(image_pred_boxes): # bb = Bounding Box
         x1, y1, x2, y2 = bb.int().tolist()
         
         x1 = int(x1 / 640*w)
@@ -209,14 +209,15 @@ def show_all_bb_inf(image_boxes, image_path, image_labels=None, image_scores=Non
         x2 = int(x2 /  640*w)
         y2 = int(y2 / 640*h)
 
-    
-        draw(img, x1, y1, (x1,y1), (x2, y2), "Adamant")
+        class_id = image_pred_labels[index]
+        class_name = config.CLASSES[class_id-1]
+        draw(img, x1, y1, (x1,y1), (x2, y2), class_name=class_name, conf=image_scores[index-1])
     
     print(" Bounding boxes drawn - Image shown on screen" )
     cv2.imshow(f"Runescape image - Inference", img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-    print(" Window closed")
+    print(" Window closed.")
 
 #show_all_bb(0)
 

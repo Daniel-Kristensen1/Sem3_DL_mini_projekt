@@ -8,12 +8,15 @@ import train
 from pathlib import Path
 import torchvision.transforms as T
 from PIL import Image
+import random
+
 import utils
+
 weight_path = config.WEIGHTS
 
 image_dir_path = config.TEST_IMAGES
 image_data = config.TEST_JSON
-
+image_num = random.randint(0, 171)  
 
 training_val = torch.load(weight_path, map_location="cpu")
 weights = training_val["model_state_dict"]
@@ -32,7 +35,7 @@ model.eval()
 # Inference ##
 ##############
 print("\nSTEP 2: Run inference on image:" )
-image_path = utils.get_image_path(image_dir_path, 0)
+image_path = utils.get_image_path(image_dir_path, image_num)
 
 with torch.no_grad():
     outputs = model(utils.image_to_tensor(image_path))
@@ -43,4 +46,4 @@ print(" Inference sucessful." )
 ##############
 print("\nSTEP 3: Draw bounding boxes on image:" )
 print(" Drawing all bounding boxes...")
-utils.show_all_bb_inf(outputs[0]["boxes"], image_path )
+utils.show_all_bb_inf(image_path, outputs[0]["boxes"],outputs[0]["labels"], outputs[0]["scores"] )
