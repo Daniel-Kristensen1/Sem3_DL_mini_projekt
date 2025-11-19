@@ -6,6 +6,9 @@ from torchvision import datasets, models, transforms
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from pathlib import Path
+from torchvision.models.detection.anchor_utils import AnchorGenerator
+
+
 import getpass
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -79,4 +82,18 @@ LOSS_FN = []
 
 IMAGE_SIZE = (640, 640)
 
-NUM_WORKERS = 2
+if DEVICE == torch.device("cpu"):
+    NUM_WORKERS = 0
+else:
+    NUM_WORKERS = 2
+
+
+DEFAULT_ANCHOR = AnchorGenerator(
+        sizes=((32, 64, 128, 256, 512),),
+        aspect_ratios=((0.5, 1.0, 2.0),) # Skalering ag højde på anchor boks.
+        )
+
+K_MEAN_OPTIMIZED_ANCHORS = AnchorGenerator(
+        sizes=((19, 30, 52),),
+        aspect_ratios=((1,6),) # Skalering ag højde på anchor boks.
+        )
