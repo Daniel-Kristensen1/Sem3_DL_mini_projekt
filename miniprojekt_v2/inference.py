@@ -18,7 +18,7 @@ image_dir_path = config.TEST_IMAGES
 image_data = config.TEST_JSON
 image_num = random.randint(0, 171)  
 
-training_val = torch.load(weight_path, map_location="cpu")
+training_val = torch.load(weight_path, map_location=config.DEVICE)
 weights = training_val["model_state_dict"]
 
 ##############

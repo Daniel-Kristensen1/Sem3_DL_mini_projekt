@@ -129,7 +129,7 @@ def image_to_tensor(path):
     ])
 
     img_tensor = transform(img)#.unsqueeze(0)   # Add batch dimension
-    img_tensor.to(config.DEVICE)
+    img_tensor = img_tensor.to(config.DEVICE)
     return [img_tensor]
 
 
