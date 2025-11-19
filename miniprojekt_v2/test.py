@@ -14,22 +14,18 @@ from torch.utils.data import DataLoader
 from data_handler import DataHandler
 import train
 
+
 weight_path = config.WEIGHTS
 
-# -------------------------------
-# Load weights
-# -------------------------------
-training_val = torch.load(weight_path, map_location="cpu")
-weights = training_val["model_state_dict"]
+weights = torch.load(weight_path, weights_only=True, map_location=config.DEVICE)
+weights = weights["model_state_dict"]
 
 model = m.create_object_detector()
 model.load_state_dict(weights)
 model.to(config.DEVICE)
 print("✅ Model loaded with trained weights.")
 
-# -------------------------------
-# Prepare test dataset & loader
-# -------------------------------
+
 test_dataset = DataHandler(
     json_path=config.TEST_JSON,
     images_dir=config.TEST_IMAGES,
