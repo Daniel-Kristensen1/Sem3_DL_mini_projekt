@@ -79,4 +79,7 @@ LOSS_FN = []
 
 IMAGE_SIZE = (640, 640)
 
-NUM_WORKERS = 2
+if DEVICE == torch.device("cpu"):
+    NUM_WORKERS = 0
+else:
+    NUM_WORKERS = 2
