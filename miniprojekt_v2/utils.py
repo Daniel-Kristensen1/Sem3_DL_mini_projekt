@@ -2,22 +2,19 @@
 import torch
 import numpy as np
 import config
-
-
-################
-## Vizualize ##
-################
-
+import torchvision.transforms as T
+from PIL import Image
 import cv2
 from pathlib import Path
 import json
 
-#image_dir_path = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\val\images")
-#image_data = Path(r"C:\Users\Daniel K\Desktop\data_splits_ready\val\val.json")
-
 image_dir_path = config.TEST_IMAGES
 image_data = config.TEST_JSON
 
+
+#####################################
+########## Path Handeling ###########
+#####################################
 
 def get_image_path(image_dir_path, image_index):
     """
@@ -33,6 +30,11 @@ def get_image_path(image_dir_path, image_index):
 
     return sorted(image_dir_path.glob("*"))[image_index]
 
+
+#####################################
+########## Data Handeling ###########
+#####################################
+
 def get_data(data_path):
     """
     Henter data fra en json-fil af annoteret data.   
@@ -46,39 +48,6 @@ def get_data(data_path):
 
     with open(data_path) as data:
         return json.load(data)
-
-def get_image_w_h(image_path):
-    """
-    Henter 'height' og 'width' fra det originale billede, for at kunne skalere bounding boksenes x og y koordinater. 
-
-    Parametre:
-    image_path (path): Stien til et enkelt billede
-
-    Returnerer:
-    int: højden(height) og breden(width) af billedet
-    """  
-
-    h, w, _ = cv2.imread(str(image_path)).shape
-    return h, w
-
-
-def file_name(image_dir_path, index):
-    """
-    Henter navnet på billedet for at kunne sammenligne billede navnet 
-    med det respektive dictionary i json filen, som indeholder 
-    den annoterede data til præcis dette billede
-
-    Parametre:
-    image_dir_path (path): Stien til mappen med billeder.
-    image_index (int): Billedets index i mappen.
-
-    Returnerer:
-    str: fil-navnet til billedet
-    """ 
-
-    first_image = get_image_path(image_dir_path, index)
-    filename = first_image.name
-    return filename
 
 def get_image_data(image_dir_path, image_index, data):
     """
@@ -113,6 +82,60 @@ def get_class_info(id):
     class_name = config.CLASSES[id]
     class_color = config.CLASS_COLORS[class_name]
     return class_name, class_color      
+
+#####################################
+########## Image Handeling #########
+#####################################
+
+def file_name(image_dir_path, index):
+    """
+    Henter navnet på billedet for at kunne sammenligne billede navnet 
+    med det respektive dictionary i json filen, som indeholder 
+    den annoterede data til præcis dette billede
+
+    Parametre:
+    image_dir_path (path): Stien til mappen med billeder.
+    image_index (int): Billedets index i mappen.
+
+    Returnerer:
+    str: fil-navnet til billedet
+    """ 
+
+    first_image = get_image_path(image_dir_path, index)
+    filename = first_image.name
+    return filename
+
+def get_image_w_h(image_path):
+    """
+    Henter 'height' og 'width' fra det originale billede, for at kunne skalere bounding boksenes x og y koordinater. 
+
+    Parametre:
+    image_path (path): Stien til et enkelt billede
+
+    Returnerer:
+    int: højden(height) og breden(width) af billedet
+    """  
+
+    h, w, _ = cv2.imread(str(image_path)).shape
+    return h, w
+
+
+def image_to_tensor(path):
+    img = Image.open(path).convert("RGB")
+
+    transform = T.Compose([
+        T.Resize(config.IMAGE_SIZE),
+        T.ToTensor()
+    ])
+
+    img_tensor = transform(img)#.unsqueeze(0)   # Add batch dimension
+    img_tensor.to(config.DEVICE)
+    return [img_tensor]
+
+
+#####################################
+########## DRAW BOUNDING BOX ########
+#####################################
 
 def draw(image, x1, y1, bb_top_right, bb_lower_left, class_name, conf=1):
     """
@@ -189,10 +212,11 @@ def show_all_bb_inf(image_boxes, image_path, image_labels=None, image_scores=Non
     
         draw(img, x1, y1, (x1,y1), (x2, y2), "Adamant")
     
+    print(" Bounding boxes drawn - Image shown on screen" )
     cv2.imshow(f"Runescape image - Inference", img)
-
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+    print(" Window closed")
 
 #show_all_bb(0)
 
