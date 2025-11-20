@@ -130,6 +130,7 @@ def make_tensor(image_path):
     img_resized = resize_image(img)
    
     image_tensor = F.to_tensor(img_resized) # Laver billedet om til en tensor [C, H, W] 
+    image_tensor = image_tensor.to(config.DEVICE)
     return [image_tensor]
 
 #####################################

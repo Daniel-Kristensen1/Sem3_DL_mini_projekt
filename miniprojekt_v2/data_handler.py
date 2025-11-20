@@ -102,7 +102,7 @@ class DataHandler(Dataset):
         # Laver billedet om til en tensor [C, H, W] og skalerer værdierne til [0, 1]
         image_tensor = F.to_tensor(image)
 
-        # Laver boundingboxes om til tensors
+        # Laver boundingboxes om til tensors (Eller 0, hvis ingen bounding boxes er)
         if len(boundingboxes) > 0:
             boxes_tensor = torch.tensor(boundingboxes, dtype=torch.float32)
         else:
