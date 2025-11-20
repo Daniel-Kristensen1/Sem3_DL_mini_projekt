@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from data_handler import DataHandler
 import train
 
+
 print("TESTING MODEL:")
 print("\nSTEP 1: Load model weights.")
 weight_path = config.WEIGHTS
@@ -65,4 +66,9 @@ print("Final MeanAveragePrediction Results:")
 
 result.pop("classes", None)
 [print(f"{data_type:15}: {output_tensor:.4f}") for data_type, output_tensor in result.items()] 
+
+# Kopiret fra "https://www.geeksforgeeks.org/deep-learning/check-the-total-number-of-parameters-in-a-pytorch-model/"
+# Kør programmet på vores test mappe, for at få totale antal af learnable parametre. 
+total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print(f"Total number of parameters: {total_params}")
 
