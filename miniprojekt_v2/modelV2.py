@@ -29,7 +29,7 @@ class Backbone(nn.Module):
 def create_object_detector(num_classes=config.NUM_CLASSES):
       print(f"- Creating Object Detector...")
       print(f"- Creating Anchor generator...")
-      anchor_gen = config.DEFAULT_ANCHOR
+      anchor_gen = config.K_MEAN_OPTIMIZED_ANCHORS
       print(f"- Building model based on FasterRCNN...")
       model = FasterRCNN(
            backbone=Backbone(),
