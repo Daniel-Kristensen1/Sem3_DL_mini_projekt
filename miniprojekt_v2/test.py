@@ -6,14 +6,6 @@ from torch.utils.data import DataLoader
 from data_handler import DataHandler
 import train
 
-import modelV2 as m
-import torch
-import config
-from torchmetrics.detection.mean_ap import MeanAveragePrecision
-from torch.utils.data import DataLoader
-from data_handler import DataHandler
-import train
-
 print("TESTING MODEL:")
 print("\nSTEP 1: Load model weights.")
 weight_path = config.WEIGHTS
@@ -38,7 +30,7 @@ test_loader = DataLoader(
     test_dataset,
     batch_size=config.BATCH_SIZE,
     shuffle=False,
-    num_workers=config.NUM_WORKERS,
+    num_workers=0,
     collate_fn=train.collate_fn
 )
 print(" Data loader initated.")
