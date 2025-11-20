@@ -106,7 +106,7 @@ class DataHandler(Dataset):
         if len(boundingboxes) > 0:
             boxes_tensor = torch.tensor(boundingboxes, dtype=torch.float32)
         else:
-            boxes_tensor = torch.zeros((0, 4), dtype=torch.float32) #########Læs lige op på denne##########
+            boxes_tensor = torch.zeros((0, 4), dtype=torch.float32)
         
         # Laver labels om til tensor [N] (Eller [0] hvis ingen labels)
         if len(labels) > 0:
