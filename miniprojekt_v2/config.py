@@ -94,6 +94,6 @@ DEFAULT_ANCHOR = AnchorGenerator(
         )
 
 K_MEAN_OPTIMIZED_ANCHORS = AnchorGenerator(
-        sizes=((19, 30, 52),),
-        aspect_ratios=((1,6),) # Skalering ag højde på anchor boks.
+        sizes=((20, 30, 50, 70, 100),),
+        aspect_ratios=((0.5, 1.0, 1.5),) # Skalering ag højde på anchor boks.
         )
