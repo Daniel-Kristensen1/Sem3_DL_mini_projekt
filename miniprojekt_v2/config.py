@@ -1,15 +1,11 @@
+from pathlib import Path
+import getpass
 
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torchvision import datasets, models, transforms
-from torch.utils.data import DataLoader
-from tqdm import tqdm
-from pathlib import Path
 from torchvision.models.detection.anchor_utils import AnchorGenerator
 
 
-import getpass
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 user = getpass.getuser()
@@ -87,12 +83,12 @@ if DEVICE == torch.device("cpu"):
 else:
     NUM_WORKERS = 2
 
-
+# Hvis ikke man selv definere sizes og ratios, så er defult det som er lige under. 
 DEFAULT_ANCHOR = AnchorGenerator(
         sizes=((32, 64, 128, 256, 512),),
         aspect_ratios=((0.5, 1.0, 2.0),) # Skalering ag højde på anchor boks.
         )
-
+# Her er en test af nye, lavet ud fra k-means på JSON datasættet
 K_MEAN_OPTIMIZED_ANCHORS = AnchorGenerator(
         sizes=((20, 30, 50, 70, 100),),
         aspect_ratios=((0.5, 1.0, 1.5),) # Skalering ag højde på anchor boks.

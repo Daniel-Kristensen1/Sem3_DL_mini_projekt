@@ -1,22 +1,20 @@
-import modelV2 as m
-import torch
-import config
-from torchmetrics.detection.mean_ap import MeanAveragePrecision
-from torch.utils.data import DataLoader
-from data_handler import DataHandler
-import train
-from pathlib import Path
-import torchvision.transforms as T
-from PIL import Image
 import random
 
+import torch
+
+import config
+import modelV2 as m
 import utils
+
 
 weight_path = config.WEIGHTS
 
 image_dir_path = config.TEST_IMAGES
 image_data = config.TEST_JSON
+
+# Sæt # i variablen under, for fjern den anden for at lave forudsigelse på specifikt billede
 image_num = random.randint(0, 171)  
+# image_num = 0
 
 training_val = torch.load(weight_path, map_location=config.DEVICE)
 weights = training_val["model_state_dict"]

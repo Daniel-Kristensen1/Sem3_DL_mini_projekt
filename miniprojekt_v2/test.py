@@ -62,7 +62,7 @@ print("\nSTEP 4: Compute results.")
 result = metric.compute()
 print(result)
 print("Final MeanAveragePrediction Results:")
-lines = "---------------------------------------"
+
 result.pop("classes", None)
 [print(f"{data_type:15}: {output_tensor:.4f}") for data_type, output_tensor in result.items()] 
 

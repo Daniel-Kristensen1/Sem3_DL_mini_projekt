@@ -1,16 +1,18 @@
 import torch
-from torch.utils.data import DataLoader
 import torch.optim as optim
-from pathlib import Path
 import json
 import random
 import numpy as np
-
+from pathlib import Path
+from torch.utils.data import DataLoader
 
 import config
 from data_handler import DataHandler
 from modelV2 import create_object_detector
 
+
+################################# LAVET AF CHATGBT (Alt under) #########################################
+# Funktionen er sat for at lave reproducerbare resultater i takten med at vi laver forskellige forsøg på at øge model performance
 def set_seed(seed=42):
     random.seed(seed)
     np.random.seed(seed)
@@ -22,20 +24,24 @@ def set_seed(seed=42):
     # Gør cuDNN så deterministisk som muligt
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+################################# LAVET AF CHATGBT (Alt over) #########################################
+
+
 
 
 # Sortering funktion
-# collate_fn er en funktion, som bestemmer, hvordan DataLoader skal samle individuelle samples fra vores dataset til en samlet batch. 
+# collate_fn er en funktion, som bestemmer, hvordan DataLoader skal samle individuelle samples fra vores dataset til et samlet batch. 
 # Normalt i PyTorch til fx klassifikations opgaver så laver DataLoader automatisk batches således her:
 # images:  tensor of shape [batch_size, C, H, W]
 # labels:  tensor of shape [batch_size]
 
 # Men da vi bruger Faster R-CNN, så skal vi have output:
-# {
-#    "images": [img1, img2, ...],
+# 
+#    ["images": [img1_tensor, img2_tensor, ...], liste af N billeder
 # targets = [
-#    {"boxes": ..., "labels": ...},
-#    {"boxes": ..., "labels": ...},]
+#    {"boxes": tensor[[x1, y1, x2, y2], ...], "labels": tensor([...])},
+#    {"boxes": tensor[[x1, y1, x2, y2], ...], "labels": tensor([...])},
+#    ...
 #}   N kan være forskelligt for hver batch altså antallet af boxes og labels
 
 
@@ -86,7 +92,7 @@ def train_loop():
     # DataLoader får her adgang til datasættet
     train_loader = DataLoader(
         train_dataset, # Indeholder JSON, Stier, resize, bounding box processing, getitem (hent 1 sample), len (Hvor mange samples findes der)
-        batch_size=config.BATCH_SIZE, # Hvor mange samples per batch. R-CNN er tung, og kræver meget, så 1-2 er ofte passende større batches kan gøre træning langsom eller umulig
+        batch_size=config.BATCH_SIZE, # Hvor mange samples per batch.
         shuffle=True, # Shuffler data, altså rækkefølgen af samples hver epoch
         num_workers=config.NUM_WORKERS, # Hvor mange subprocesses der skal bruges til at loade data. 0 betyder main processen
         collate_fn=collate_fn # Vi fortæller her DataLoader at bruge vores custom collate_fn funktion til at samle batches korrekt
@@ -95,39 +101,34 @@ def train_loop():
 
 
 
-    # Modellen - Vi bygger Faster R-CNN modellen, inklusiv backbone, RPN, ROI-heads og klassification - regression lag
-    # Fase 1: Anchor generator bliver lavet
-    # Fase 2: Backbone bliver lavet
-    # Fase 3: Faster R-CNN bliver lavet
+    # Modellen bliver instantisieret
     model = create_object_detector(num_classes=config.NUM_CLASSES)
     model.to(device) # Vi flytter bare her opgaven fra CPU til GPU
 
 
-
-    # Optimizer HUSK AT SE PÅ optimizere muligheder
     # Vi optimer alle parametre (vægte)
     # Inkluderer: ResNet50 backbone, RPN (Region Proposal Netword), ROI heads (klassifikation + box regression), Anchor regression head
     optimizer = optim.SGD(# Vi anvender her Stochastic gradient descent.
-        #Vi tager gradienterne fra loss.backward(), opdater vægtene i modellen i modsat retning af loss. Gør det igen og igen for hver batch
+        # Vi tager gradienterne fra loss.backward(), opdater vægtene i modellen.
         model.parameters(),
         lr=config.LEARNING_RATE,
         momentum=0.9,# 0.9 betyder: Optimizer husk tidligere retninger, gradientstøj bliver udjævnet, træningen bliver hurtigere, modellen zigzagger mindre, den glider gennem loss-landskabet
         # weight_decay standardværdi for R-CNN = 1e-4
-        weight_decay=1e-4 # Anti overfitting: Forhindrer vægtene i at blive alt for store, gør modellen generaliserer bedre, Gør RPN+ROI heads mere stabile, reducerer risikoen for "blowing up gradients"
-    # Alternativer til optimizer: Adam, AdamW, RMSprop (Dog bruges denne mere i RNNs)
-    # R-CNN blev designet med SGD, derfor er det den anvende optimizer her
+        weight_decay=1e-4 # Anti overfitting: Forhindrer vægtene i at blive alt for store, gør modellen generaliserer bedre, Gør RPN+ROI heads mere stabile.
+    # Alternativer til optimizer: Adam, AdamW (AdamW ser ud til ofte at blive nævnt)
+    # R-CNN blev designet med SGD, derfor er det den anvende optimizer i vores defualt setting
     )
 
     num_epochs = config.NUM_EPOCHS
 
-    # Mappe til at lave heckponts + tracking af bedste loss
+    # Mappe til at lave checkponts + tracking af bedste loss
     checkpoint_dir = Path("checkpoints")
     checkpoint_dir.mkdir(exist_ok=True)
     best_loss = float("inf")
     best_epoch = -1
 
 
-    # Træn igennem antallet af epochs. Altså kom igennem træningsdataen x antal gange
+    # Træn igennem antallet af epochs.
     for epoch in range(num_epochs):
         model.train()
         epoch_loss = 0.0 # Skal ses som en accumulator, hvor vi samler loss for hele epoch for at kunne udregne gennemsnittet til sidst.
@@ -143,7 +144,8 @@ def train_loop():
         for batch_idx, (images, targets) in enumerate(train_loader):
             # Flyt data til device (GPU/CPU)
             images = [img.to(device) for img in images] #Flytter billede til GPU fra CPU
-            targets = [{k: v.to(device) for k, v in t.items()} for t in targets] #Flytter alle tensors i dict'en til device(GPUen)
+            targets = [{data_type: tensor_data.to(device) for data_type, tensor_data in t.items()} for t in targets] #Flytter alle tensors i dict'en til device(GPUen)
+            print(f"\n Batch: {batch_idx+1}/{len(train_loader)}")
 
 
             # model(images, targets og sum(loss for loss in loss_dict.values())
@@ -153,7 +155,7 @@ def train_loop():
             # Sammenligner output med targets (ground truth)
             # Regner 4 losses
             # De 4 losses: loss_classifier, loss_box_reg, loss_objectness, loss_rpn_box_reg. Returneres som en dictionary
-            loss_dict = model(images, targets) # <- vigtigste
+            loss_dict = model(images, targets)
 
             # Resten under bruges kun til at lave plots
             loss_classifer = loss_dict.get("loss_classifier", 0.0)
@@ -165,7 +167,7 @@ def train_loop():
             loss = loss_classifer + loss_box_reg + loss_objectness + loss_rpn_box_reg # Laver samlet loss, til backprop
 
             optimizer.zero_grad() # Nulstiller gamle gradients, så vi ikke akkumulerer fra tidligere batches
-            loss.backward() # PyTorch går baglæns igennem hele modellen: Beregner gradienter for backbone, RPN, heads
+            loss.backward() # PyTorch går baglæns igennem hele modellen
             optimizer.step() # Tager alle gradients, opdaterer vægtene en lille smule ud fra "learning rate" og "momentum" og "weight decay" 
 
 
@@ -234,5 +236,5 @@ def train_loop():
 
 
 if __name__ == "__main__":
-    set_seed(42)
+    set_seed()
     train_loop()

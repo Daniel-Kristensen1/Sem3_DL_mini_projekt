@@ -1,15 +1,12 @@
-# imports som eventuelt skal bruges
-import argparse, json, time
-from pathlib import Path
-
+import json
 import torch
-from torch.utils.data import Dataset, DataLoader
+from pathlib import Path
+from torch.utils.data import Dataset
 from PIL import Image
 from torchvision.transforms import functional as F
-from torchvision.models.detection import fasterrcnn_resnet50_fpn_v2, FasterRCNN_ResNet50_FPN_V2_Weights
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 import config
+
 
 
 class DataHandler(Dataset):
