@@ -1,0 +1,203 @@
+import json
+
+import cv2
+from PIL import Image
+from torchvision.transforms import functional as F
+
+import config
+
+
+
+#####################################
+########## Path Handeling ###########
+#####################################
+
+def get_image_path(image_dir_path, image_index):
+    """
+    Henter stien til billedet ved et givent index i en mappe med billeder.
+
+    Parametre:
+    image_dir_path (path): Stien til mappen med billeder.
+    image_index (int): Billedets index i mappen.
+
+    Returnerer:
+    Path: Stien til billedet ved indexet.
+    """  
+
+    return sorted(image_dir_path.glob("*"))[image_index]
+
+
+#####################################
+########## Data Handeling ###########
+#####################################
+
+def get_data(data_path):
+    """
+    Henter data fra en json-fil af annoteret data.   
+
+    Parametre:
+    data_path (path): Stien til json filen med annoteret billede data. 
+
+    Returnerer:
+    List: En liste med dictionaries som indeholder annoteret billededata.
+    """  
+
+    with open(data_path) as data:
+        return json.load(data)
+
+def get_image_data(image_dir_path, image_index, data):
+    """
+    Henter det den annoterede data fra json filen, 
+    som tilhøre et specfiikt billede.
+
+    Parametre:
+    image_dir_path (path): Stien til mappen med billeder.
+    image_index (int): Billedets index i mappen.
+    data (list): Liste med alt annoteret data fra billederne i mappen. 
+
+    Returnerer:
+    dict: En dictionary med den respektive data til det specifikke billede i mappen
+    """ 
+
+    for i in data:
+        if file_name(image_dir_path, image_index) in i["image"]:
+            return i
+    print("Error: couldnt find image data")
+
+def get_class_info(id):
+    """
+    Henter information om klassens navn og bounding boks farve. 
+
+    Parametre:
+    id (int): klassen id / index i variablen config.CLASSES
+
+    Returnerer:
+    str: navnet på klassen
+    tuple: RGB farver 
+    """ 
+    class_name = config.CLASSES[id]
+    class_color = config.CLASS_COLORS[class_name]
+    return class_name, class_color      
+
+#####################################
+########## Image Handeling #########
+#####################################
+
+def file_name(image_dir_path, index):
+    """
+    Henter navnet på billedet for at kunne sammenligne billede navnet 
+    med det respektive dictionary i json filen, som indeholder 
+    den annoterede data til præcis dette billede
+
+    Parametre:
+    image_dir_path (path): Stien til mappen med billeder.
+    image_index (int): Billedets index i mappen.
+
+    Returnerer:
+    str: fil-navnet til billedet
+    """ 
+
+    first_image = get_image_path(image_dir_path, index)
+    filename = first_image.name
+    return filename
+
+def get_image_w_h(image_path):
+    """
+    Henter 'height' og 'width' fra det originale billede, for at kunne skalere bounding boksenes x og y koordinater. 
+
+    Parametre:
+    image_path (path): Stien til et enkelt billede
+
+    Returnerer:
+    int: højden(height) og breden(width) af billedet
+    """  
+
+    h, w, _ = cv2.imread(str(image_path)).shape
+    return h, w
+
+
+def resize_image(image):
+   
+    new_width, new_height = config.IMAGE_SIZE
+    image_resized = F.resize(image, [new_height, new_width])
+
+    return image_resized
+
+def make_tensor(image_path):
+    img = Image.open(image_path).convert("RGB")
+    img_resized = resize_image(img)
+   
+    image_tensor = F.to_tensor(img_resized) # Laver billedet om til en tensor [C, H, W] 
+    image_tensor = image_tensor.to(config.DEVICE)
+    return [image_tensor]
+
+#####################################
+########## DRAW BOUNDING BOX ########
+#####################################
+
+def draw(image, x1, y1, bb_top_right, bb_lower_left, class_name, conf=1):
+    """
+    Tegner bounding bokse på input billedet. 
+    Bokse er farvelagt og navngivet efter klasse.
+    Tilføger også en konfidence score til boksen.
+
+    Parametre:
+    image ():
+    x1 ():
+    x2 ():
+    bb_top_right ():
+    bb_lower_left ():
+    class_name ():
+    conf (): 
+    
+    """ 
+    rect_thickness = 2
+    cv2.rectangle( #cv2.rectangle(image, start_point, end_point, color, thickness)
+        image, 
+        bb_top_right, 
+        bb_lower_left, 
+        config.CLASS_COLORS[class_name],
+        rect_thickness
+                    )
+    cv2.putText(
+        image,
+        f"{class_name}, {conf}",
+        (x1, y1 - 5),             # Text location 
+        cv2.FONT_HERSHEY_SIMPLEX,           # Font
+        1,                                  # Font scale
+        config.CLASS_COLORS[class_name], # Color
+        rect_thickness                      # thickness
+    )
+
+
+def show_all_bb_inf(image_path, image_pred_boxes, image_pred_labels, image_scores):
+    """
+    Tegner bounding bokse indputbillede og viser det på skærmen.
+
+    Parametre:
+    image_path (path): sti til billedefilen
+    image_pred_boxes (tensor): tensor med alle bounding bokse på billedet
+    image_pred_labels (tensor): tensor med labels tilhørende respektive bounding bokse
+    image_scores (tensor): tensor med confidence scores tilhørende respektive bounding bokse
+
+    """ 
+    h, w = get_image_w_h(image_path)
+    img = cv2.imread(image_path)
+
+    for index, bb in enumerate(image_pred_boxes): # bb = Bounding Box
+        x1, y1, x2, y2 = bb.int().tolist()
+        
+        x1 = int(x1 / 640*w)
+        y1 = int(y1 / 640*h)
+        x2 = int(x2 /  640*w)
+        y2 = int(y2 / 640*h)
+
+        class_id = image_pred_labels[index]
+        class_name = config.CLASSES[class_id-1]
+        draw(img, x1, y1, (x1,y1), (x2, y2), class_name=class_name, conf=image_scores[index-1])
+    
+    print(" Bounding boxes drawn - Image shown on screen" )
+    cv2.imshow(f"Runescape image - Inference", img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    print(" Window closed.")
