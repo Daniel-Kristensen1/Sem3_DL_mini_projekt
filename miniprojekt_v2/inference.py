@@ -38,7 +38,7 @@ print("\nSTEP 2: Run inference on image:" )
 image_path = utils.get_image_path(image_dir_path, image_num)
 
 with torch.no_grad():
-    outputs = model(utils.image_to_tensor(image_path))
+    outputs = model(utils.make_tensor(image_path))
 print(" Inference sucessful." )
 
 ##############

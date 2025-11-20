@@ -7,6 +7,8 @@ from PIL import Image
 import cv2
 from pathlib import Path
 import json
+from torchvision.transforms import functional as F
+
 
 #####################################
 ########## Path Handeling ###########
@@ -116,18 +118,19 @@ def get_image_w_h(image_path):
     return h, w
 
 
-def image_to_tensor(path):
-    img = Image.open(path).convert("RGB")
+def resize_image(image):
+   
+    new_width, new_height = config.IMAGE_SIZE
+    image_resized = F.resize(image, [new_height, new_width])
 
-    transform = T.Compose([
-        T.Resize(config.IMAGE_SIZE),
-        T.ToTensor()
-    ])
+    return image_resized
 
-    img_tensor = transform(img)#.unsqueeze(0)   # Add batch dimension
-    img_tensor = img_tensor.to(config.DEVICE)
-    return [img_tensor]
-
+def make_tensor(image_path):
+    img = Image.open(image_path).convert("RGB")
+    img_resized = resize_image(img)
+   
+    image_tensor = F.to_tensor(img_resized) # Laver billedet om til en tensor [C, H, W] 
+    return [image_tensor]
 
 #####################################
 ########## DRAW BOUNDING BOX ########
