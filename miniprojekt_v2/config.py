@@ -33,7 +33,7 @@ else:
     TEST_IMAGES = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\test\images")
     VAL_IMAGES = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt2.0\data_splits_ready\val\images")
 
-    WEIGHTS = Path(r"C:\Program Files (x86)\Programmering\3_semester\Mini_projekt\Daniel_github\checkpoints_v2_100epochs_standard_modellen\best_model.pth")
+    WEIGHTS = Path(r"C:\Users\alext\Desktop\mappe_weights_and_loss\kmeans_anchor_change\best_model.pth")
 
 # Sti til trænede vægte:
 

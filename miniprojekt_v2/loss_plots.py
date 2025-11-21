@@ -3,7 +3,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 def gotta_make_em_plots():
-    log_path = Path(r"C:\Users\alext\Desktop\mappe_weights_and_loss\scheduler\loss_log.json")
+    log_path = Path(r"C:\Users\alext\Desktop\mappe_weights_and_loss\kmeans_anchor_change\loss_log.json")
     if not log_path.exists():
         print(f"Kan ikke finde {log_path}.")
         return
